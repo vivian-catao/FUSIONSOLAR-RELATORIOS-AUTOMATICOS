@@ -1,0 +1,28 @@
+# Configurações da API FusionSolar
+fusionsolar:
+  base_url: "https://intl.fusionsolar.huawei.com"
+  username: "seu_usuario@email.com"
+  password: "sua_senha"
+  
+# Configurações do relatório
+relatorio:
+  # Informações da empresa
+  nome_empresa: "Sua Empresa Solar Ltda"
+  telefone: "(00) 0000-0000"
+  email: "contato@suaempresa.com.br"
+  
+  # Logo (opcional - deixe vazio se não tiver)
+  logo_empresa: "assets/logo.png"
+  
+  # Cores personalizadas (hexadecimal)
+  cor_primaria: "#FF6B00"    # Laranja
+  cor_secundaria: "#2C3E50"  # Azul escuro
+  
+  # Parâmetros de cálculo
+  tarifa_energia_kwh: 0.887      # R$/kWh
+  fator_emissao_co2: 0.0817      # tCO2/MWh (média Brasil)
+  absorcao_arvore_ano: 163.0     # kg CO2/ano por árvore
+  
+  # Configurações de geração de PDF
+  formato_data: "%d/%m/%Y"
+  idioma: "pt_BR"

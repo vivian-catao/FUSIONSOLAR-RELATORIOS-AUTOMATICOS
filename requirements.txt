@@ -1,0 +1,29 @@
+# Dependências Python para Sistema de Relatórios FusionSolar
+
+# API e requisições HTTP
+requests>=2.31.0
+urllib3>=2.0.0
+
+# Processamento de dados
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# Geração de PDFs
+weasyprint>=60.0
+Jinja2>=3.1.2
+
+# Gráficos
+matplotlib>=3.8.0
+numpy>=1.24.0
+
+# Utilitários
+python-dateutil>=2.8.2
+
+# Logging (opcional, já vem com Python)
+# logging está na biblioteca padrão
+
+# Para desenvolvimento/testes (opcional)
+pytest>=7.4.0
+pytest-cov>=4.1.0
+black>=23.0.0
+flake8>=6.1.0

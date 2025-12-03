@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Mensal - {{ dados.estacao.nome }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #2C3E50;
+            line-height: 1.6;
+            font-size: 11pt;
+        }
+        
+        .page {
+            page-break-after: always;
+        }
+        
+        .page:last-child {
+            page-break-after: avoid;
+        }
+        
+        /* Cabeçalho */
+        .header {
+            background: linear-gradient(135deg, #FF6B00 0%, #FF8C00 100%);
+            color: white;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        .header h1 {
+            font-size: 28pt;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header .periodo {
+            font-size: 16pt;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+        
+        .header .info-empresa {
+            margin-top: 20px;
+            font-size: 10pt;
+            opacity: 0.9;
+        }
+        
+        /* Seções */
+        .secao {
+            margin-bottom: 30px;
+        }
+        
+        .secao-titulo {
+            font-size: 18pt;
+            font-weight: 700;
+            color: #FF6B00;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 3px solid #FF6B00;
+        }
+        
+        /* Cards de métricas */
+        .metricas-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metrica-card {
+            background: #f8f9fa;
+            border-left: 5px solid #FF6B00;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .metrica-card.destaque {
+            background: linear-gradient(135deg, #FF6B00 0%, #FF8C00 100%);
+            color: white;
+            border-left: none;
+            grid-column: span 2;
+        }
+        
+        .metrica-label {
+            font-size: 10pt;
+            opacity: 0.8;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metrica-valor {
+            font-size: 28pt;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        
+        .metrica-descricao {
+            font-size: 9pt;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        
+        /* Tabelas */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+        
+        th {
+            background: #2C3E50;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 10pt;
+        }
+        
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 10pt;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        /* Gráficos */
+        .grafico {
+            width: 100%;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .grafico img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Status badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 9pt;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-sucesso {
+            background: #27AE60;
+            color: white;
+        }
+        
+        .badge-aviso {
+            background: #F39C12;
+            color: white;
+        }
+        
+        .badge-erro {
+            background: #E74C3C;
+            color: white;
+        }
+        
+        /* Rodapé */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            font-size: 9pt;
+            color: #7f8c8d;
+            text-align: center;
+        }
+        
+        /* Destaque */
+        .destaque-box {
+            background: #FFF9E6;
+            border: 2px solid #F39C12;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .destaque-box strong {
+            color: #E67E22;
+        }
+        
+        /* Lista de alarmes */
+        .alarme-item {
+            padding: 10px;
+            margin: 8px 0;
+            border-left: 4px solid #E74C3C;
+            background: #FFF5F5;
+            border-radius: 4px;
+        }
+        
+        .alarme-critico {
+            border-left-color: #E74C3C;
+            background: #FFF5F5;
+        }
+        
+        .alarme-aviso {
+            border-left-color: #F39C12;
+            background: #FFFBF0;
+        }
+    </style>
+</head>
+<body>
+    <!-- PÁGINA 1: CAPA E RESUMO EXECUTIVO -->
+    <div class="page">
+        <!-- Cabeçalho -->
+        <div class="header">
+            <h1>Relatório Mensal de Geração Solar</h1>
+            <div class="periodo">{{ dados.periodo.mes_ano_texto }}</div>
+            <div style="margin-top: 20px; font-size: 14pt;">
+                <strong>{{ dados.estacao.nome }}</strong>
+            </div>
+            <div class="info-empresa">
+                {{ config.relatorio.nome_empresa }}<br>
+                {{ config.relatorio.telefone }} | {{ config.relatorio.email }}
+            </div>
+        </div>
+        
+        <!-- Resumo Executivo -->
+        <div class="secao">
+            <h2 class="secao-titulo">📊 Resumo Executivo</h2>
+            
+            <div class="metricas-grid">
+                <div class="metrica-card destaque">
+                    <div class="metrica-label">Energia Total Gerada</div>
+                    <div class="metrica-valor">{{ formatar_numero(dados.geracao.total_kwh, 0) }} kWh</div>
+                    <div class="metrica-descricao">
+                        Média diária: {{ formatar_numero(dados.geracao.media_diaria, 1) }} kWh
+                    </div>
+                </div>
+                
+                <div class="metrica-card">
+                    <div class="metrica-label">💰 Economia Financeira</div>
+                    <div class="metrica-valor">{{ formatar_moeda(dados.economia.economia_mensal) }}</div>
+                    <div class="metrica-descricao">
+                        Tarifa: {{ formatar_moeda(dados.economia.tarifa_utilizada) }}/kWh
+                    </div>
+                </div>
+                
+                <div class="metrica-card">
+                    <div class="metrica-label">🌱 CO₂ Evitado</div>
+                    <div class="metrica-valor">{{ formatar_numero(dados.impacto_ambiental.co2_evitado_kg, 0) }} kg</div>
+                    <div class="metrica-descricao">
+                        {{ formatar_numero(dados.impacto_ambiental.arvores_equivalentes, 0) }} árvores equivalentes
+                    </div>
+                </div>
+                
+                <div class="metrica-card">
+                    <div class="metrica-label">⚡ Performance Ratio</div>
+                    <div class="metrica-valor">{{ formatar_percentual(dados.performance.pr, 1) }}</div>
+                    <div class="metrica-descricao">
+                        {% if dados.performance.pr >= 75 %}
+                        <span class="badge badge-sucesso">Excelente</span>
+                        {% elif dados.performance.pr >= 60 %}
+                        <span class="badge badge-aviso">Bom</span>
+                        {% else %}
+                        <span class="badge badge-erro">Atenção</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="metrica-card">
+                    <div class="metrica-label">☀️ Horas Sol Pico Médias</div>
+                    <div class="metrica-valor">{{ formatar_numero(dados.performance.hsp_medio, 2) }} h</div>
+                    <div class="metrica-descricao">
+                        Disponibilidade: {{ formatar_percentual(dados.performance.disponibilidade, 1) }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Comparativo com mês anterior -->
+            {% if dados.comparativo %}
+            <div class="destaque-box">
+                <strong>Comparativo com {{ dados.comparativo.mes_anterior }}:</strong><br>
+                {% if dados.comparativo.variacao_percentual >= 0 %}
+                    ⬆️ Aumento de <strong style="color: #27AE60;">{{ formatar_percentual(dados.comparativo.variacao_percentual, 1) }}</strong>
+                    ({{ formatar_numero(dados.comparativo.variacao_kwh, 0) }} kWh a mais)
+                {% else %}
+                    ⬇️ Redução de <strong style="color: #E74C3C;">{{ formatar_percentual(dados.comparativo.variacao_percentual * -1, 1) }}</strong>
+                    ({{ formatar_numero(dados.comparativo.variacao_kwh * -1, 0) }} kWh a menos)
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Informações do Sistema -->
+        <div class="secao">
+            <h2 class="secao-titulo">🔧 Informações do Sistema</h2>
+            
+            <table>
+                <tr>
+                    <th>Item</th>
+                    <th>Valor</th>
+                </tr>
+                <tr>
+                    <td><strong>Potência Instalada</strong></td>
+                    <td>{{ formatar_numero(dados.estacao.potencia_kwp, 2) }} kWp</td>
+                </tr>
+                <tr>
+                    <td><strong>Endereço</strong></td>
+                    <td>{{ dados.estacao.endereco }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Número de Inversores</strong></td>
+                    <td>{{ dados.sistema.num_inversores }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Dias com Geração</strong></td>
+                    <td>{{ dados.geracao.dias_com_geracao }} de {{ dados.periodo.dias_no_mes }} dias</td>
+                </tr>
+                <tr>
+                    <td><strong>Maior Geração Diária</strong></td>
+                    <td>{{ formatar_numero(dados.geracao.max_diario, 1) }} kWh</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    <!-- PÁGINA 2: GRÁFICOS DE ANÁLISE -->
+    <div class="page">
+        <div class="secao">
+            <h2 class="secao-titulo">📈 Análise de Geração</h2>
+            
+            <div class="grafico">
+                <h3 style="margin-bottom: 15px; color: #2C3E50;">Geração Diária</h3>
+                <img src="{{ graficos.geracao_diaria }}" alt="Gráfico de Geração Diária">
+            </div>
+            
+            <div class="grafico">
+                <h3 style="margin-bottom: 15px; color: #2C3E50;">Indicadores Principais</h3>
+                <img src="{{ graficos.resumo_mensal }}" alt="Resumo Mensal">
+            </div>
+        </div>
+    </div>
+    
+    <!-- PÁGINA 3: PERFORMANCE E IMPACTO -->
+    <div class="page">
+        <div class="secao">
+            <h2 class="secao-titulo">⚡ Performance do Sistema</h2>
+            
+            <div class="grafico">
+                <img src="{{ graficos.performance }}" alt="Performance Ratio">
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <h3 style="color: #2C3E50; margin-bottom: 15px;">📊 Detalhamento de Performance</h3>
+                <table>
+                    <tr>
+                        <th>Métrica</th>
+                        <th>Valor</th>
+                        <th>Status</th>
+                    </tr>
+                    <tr>
+                        <td>Performance Ratio (PR)</td>
+                        <td>{{ formatar_percentual(dados.performance.pr, 1) }}</td>
+                        <td>
+                            {% if dados.performance.pr >= 75 %}
+                            <span class="badge badge-sucesso">Excelente</span>
+                            {% elif dados.performance.pr >= 60 %}
+                            <span class="badge badge-aviso">Bom</span>
+                            {% else %}
+                            <span class="badge badge-erro">Atenção</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Energia Real</td>
+                        <td>{{ formatar_numero(dados.geracao.total_kwh, 2) }} kWh</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>Energia Teórica Estimada</td>
+                        <td>{{ formatar_numero(dados.performance.energia_teorica, 2) }} kWh</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>Disponibilidade do Sistema</td>
+                        <td>{{ formatar_percentual(dados.performance.disponibilidade, 1) }}</td>
+                        <td>
+                            {% if dados.performance.disponibilidade >= 95 %}
+                            <span class="badge badge-sucesso">Ótima</span>
+                            {% else %}
+                            <span class="badge badge-aviso">Normal</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Comparativo (se houver) -->
+        {% if dados.comparativo and graficos.comparativo %}
+        <div class="secao" style="margin-top: 40px;">
+            <h2 class="secao-titulo">📊 Análise Comparativa</h2>
+            <div class="grafico">
+                <img src="{{ graficos.comparativo }}" alt="Comparativo Mensal">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- PÁGINA 4: IMPACTO AMBIENTAL E ALARMES -->
+    <div class="page">
+        <div class="secao">
+            <h2 class="secao-titulo">🌍 Impacto Ambiental</h2>
+            
+            <div class="metricas-grid">
+                <div class="metrica-card">
+                    <div class="metrica-label">CO₂ Total Evitado</div>
+                    <div class="metrica-valor" style="font-size: 20pt;">
+                        {{ formatar_numero(dados.impacto_ambiental.co2_evitado_kg, 0) }} kg
+                    </div>
+                    <div class="metrica-descricao">
+                        {{ formatar_numero(dados.impacto_ambiental.co2_evitado_ton, 4) }} toneladas
+                    </div>
+                </div>
+                
+                <div class="metrica-card">
+                    <div class="metrica-label">Árvores Equivalentes</div>
+                    <div class="metrica-valor" style="font-size: 20pt;">
+                        {{ formatar_numero(dados.impacto_ambiental.arvores_equivalentes, 0) }} 🌳
+                    </div>
+                    <div class="metrica-descricao">
+                        Absorção equivalente em 1 ano
+                    </div>
+                </div>
+            </div>
+            
+            <div class="destaque-box" style="margin-top: 20px;">
+                <p style="font-size: 11pt; line-height: 1.8;">
+                    <strong>Impacto Positivo:</strong> A energia limpa gerada neste mês equivale a 
+                    <strong>{{ formatar_numero(dados.impacto_ambiental.arvores_equivalentes, 0) }} árvores</strong> 
+                    trabalhando durante um ano inteiro para absorver CO₂ da atmosfera. 
+                    Parabéns por contribuir para um planeta mais sustentável! 🌱
+                </p>
+            </div>
+        </div>
+        
+        <!-- Alarmes e Eventos -->
+        <div class="secao" style="margin-top: 40px;">
+            <h2 class="secao-titulo">⚠️ Status do Sistema</h2>
+            
+            {% if dados.sistema.alarmes.total == 0 %}
+            <div class="destaque-box" style="background: #E8F8F5; border-color: #27AE60;">
+                <p style="color: #27AE60; font-size: 12pt;">
+                    ✅ <strong>Sistema operando normalmente!</strong><br>
+                    Nenhum alarme ou evento foi registrado neste período.
+                </p>
+            </div>
+            {% else %}
+            <p style="margin-bottom: 15px;">
+                <strong>Total de Alarmes:</strong> {{ dados.sistema.alarmes.total }}
+                ({{ dados.sistema.alarmes.criticos }} críticos, {{ dados.sistema.alarmes.avisos }} avisos)
+            </p>
+            
+            {% for alarme in dados.sistema.alarmes.lista %}
+            <div class="alarme-item {% if alarme.severidade == 'Crítico' %}alarme-critico{% else %}alarme-aviso{% endif %}">
+                <div style="font-weight: 600; margin-bottom: 5px;">
+                    {% if alarme.severidade == 'Crítico' %}🔴{% else %}🟡{% endif %}
+                    {{ alarme.nome }}
+                </div>
+                <div style="font-size: 9pt; color: #555;">
+                    {{ alarme.descricao }}<br>
+                    <em>Data: {{ alarme.data }}</em>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+        
+        <!-- Rodapé -->
+        <div class="footer">
+            <p>
+                Relatório gerado automaticamente em {{ data_geracao }}<br>
+                {{ config.relatorio.nome_empresa }} | {{ config.relatorio.telefone }} | {{ config.relatorio.email }}
+            </p>
+            <p style="margin-top: 10px; font-size: 8pt;">
+                Este relatório é baseado em dados extraídos da plataforma FusionSolar (Huawei).
+            </p>
+        </div>
+    </div>
+</body>
+</html>

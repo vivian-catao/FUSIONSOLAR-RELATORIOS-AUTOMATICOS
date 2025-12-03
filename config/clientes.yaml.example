@@ -1,0 +1,40 @@
+# Lista de clientes para geração de relatórios
+# Cada cliente deve ter as seguintes informações
+
+clientes:
+  # Cliente 1 - Exemplo Residencial
+  - station_code: "NE=12345678"
+    nome: "João Silva"
+    email: "joao.silva@email.com"
+    telefone: "(11) 98765-4321"
+    contato: "João Silva"
+    potencia_kwp: 5.4
+    tipo: "residencial"
+    observacoes: "Sistema instalado em 03/2023"
+    
+  # Cliente 2 - Exemplo Comercial
+  - station_code: "NE=87654321"
+    nome: "Empresa ABC Ltda"
+    email: "contato@empresaabc.com.br"
+    telefone: "(11) 3456-7890"
+    contato: "Maria Santos"
+    potencia_kwp: 15.6
+    tipo: "comercial"
+    observacoes: "Monitoramento mensal obrigatório"
+    
+  # Cliente 3 - Exemplo Industrial
+  - station_code: "NE=11223344"
+    nome: "Indústria XYZ S/A"
+    email: "energia@industriaxyz.com.br"
+    telefone: "(11) 2222-3333"
+    contato: "Carlos Oliveira"
+    potencia_kwp: 75.0
+    tipo: "industrial"
+    observacoes: "Relatório trimestral para diretoria"
+
+# Configurações globais para todos os clientes
+configuracoes_globais:
+  enviar_email_automatico: false
+  formato_relatorio: "pdf"
+  incluir_comparativo_mes_anterior: true
+  incluir_graficos_detalhados: true
