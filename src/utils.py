@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional
 import json
+import pytz
 
 
 def configurar_logging(nivel: str = "INFO", arquivo_log: Optional[str] = None) -> None:
@@ -321,3 +322,63 @@ def obter_mes_anterior(mes: int, ano: int) -> tuple:
     if mes == 1:
         return 12, ano - 1
     return mes - 1, ano
+
+
+def obter_timezone_brasil() -> pytz.timezone:
+    """
+    Retorna timezone de São Paulo (Brasil)
+    
+    Returns:
+        Timezone pytz para America/Sao_Paulo
+    """
+    return pytz.timezone('America/Sao_Paulo')
+
+
+def converter_para_timezone_brasil(data: datetime) -> datetime:
+    """
+    Converte datetime para timezone do Brasil
+    
+    Args:
+        data: Objeto datetime (pode ser naive ou aware)
+    
+    Returns:
+        Datetime com timezone America/Sao_Paulo
+    """
+    tz_brasil = obter_timezone_brasil()
+    
+    # Se já tem timezone, converte
+    if data.tzinfo is not None:
+        return data.astimezone(tz_brasil)
+    
+    # Se não tem timezone (naive), assume UTC e converte
+    data_utc = pytz.utc.localize(data)
+    return data_utc.astimezone(tz_brasil)
+
+
+def obter_data_hora_atual_brasil() -> datetime:
+    """
+    Retorna data e hora atual no timezone do Brasil
+    
+    Returns:
+        Datetime atual em America/Sao_Paulo
+    """
+    return datetime.now(obter_timezone_brasil())
+
+
+def formatar_data_extenso(data: datetime) -> str:
+    """
+    Formata data por extenso em português
+    
+    Args:
+        data: Objeto datetime
+    
+    Returns:
+        String formatada (ex: 01 de Dezembro de 2023)
+    """
+    meses = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ]
+    
+    return f"{data.day:02d} de {meses[data.month - 1]} de {data.year}"
+

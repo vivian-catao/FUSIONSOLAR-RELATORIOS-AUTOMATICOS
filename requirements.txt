@@ -18,6 +18,7 @@ numpy>=1.24.0
 
 # Utilitários
 python-dateutil>=2.8.2
+pytz>=2023.3
 
 # Logging (opcional, já vem com Python)
 # logging está na biblioteca padrão

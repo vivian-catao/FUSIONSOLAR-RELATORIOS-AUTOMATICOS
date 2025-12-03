@@ -21,6 +21,13 @@ Sistema completo em Python para automatizar a extração de dados da API FusionS
 
 ## ✨ Características
 
+### 🎨 Design Profissional
+- ✅ Layout moderno com gradientes e cores personalizáveis
+- ✅ Cards de métricas com KPIs destacados
+- ✅ Gráficos de alta qualidade (barras, velocímetro, comparativos)
+- ✅ Formatação brasileira (R$, dd/mm/yyyy)
+- ✅ Timezone America/Sao_Paulo
+
 ### 🔌 Integração com API FusionSolar
 - ✅ Autenticação automática com gerenciamento de token
 - ✅ Retry logic para requisições
@@ -38,22 +45,27 @@ Sistema completo em Python para automatizar a extração de dados da API FusionS
 ### 💰 Cálculos Automáticos
 - ✅ Economia financeira (R$)
 - ✅ CO₂ evitado (kg/ton)
-- ✅ Árvores equivalentes
+- ✅ Árvores equivalentes plantadas
 - ✅ Payback simples
 - ✅ Eficiência do sistema
 
-### 📄 Relatórios Profissionais
+### 📄 Relatórios Profissionais em PDF
 - ✅ PDF de alta qualidade com WeasyPrint
 - ✅ Gráficos interativos com Matplotlib
-- ✅ Template HTML personalizável
+- ✅ Template HTML personalizável com Jinja2
 - ✅ Design responsivo e profissional
-- ✅ Marca d'água e identidade visual customizável
+- ✅ Identidade visual customizável
+- ✅ Resumo executivo detalhado
+- ✅ Análise de impacto ambiental
+- ✅ Recomendações personalizadas
 
-### 🚀 Automação
-- ✅ Processamento em lote de múltiplos clientes
-- ✅ CLI completa com argumentos
-- ✅ Logs detalhados
-- ✅ Salvamento de dados intermediários em JSON
+### 🚀 Código Profissional
+- ✅ Type hints em funções críticas
+- ✅ Docstrings completas em português
+- ✅ Tratamento robusto de erros
+- ✅ Logging de todas operações
+- ✅ Código modular e extensível
+- ✅ Pronto para produção
 
 ## 🔧 Pré-requisitos
 
