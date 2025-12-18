@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 class GeradorRelatorio:
     """Gera relatórios PDF profissionais"""
     
-    def __init__(self, config: Dict[str, Any], template_path: str = "templates/relatorio_template.html"):
+    def __init__(self, config: Dict[str, Any], template_path: str = "templates/relatorio_template_novo.html"):
         """
         Inicializa o gerador
         
@@ -41,11 +41,11 @@ class GeradorRelatorio:
         self.config = config
         self.template_path = template_path
         
-        # Configuração de cores
-        self.cor_primaria = config.get('relatorio', {}).get('cor_primaria', '#FF6B00')
-        self.cor_secundaria = config.get('relatorio', {}).get('cor_secundaria', '#2C3E50')
+        # Configuração de cores Comsol
+        self.cor_primaria = config.get('relatorio', {}).get('cor_primaria', '#ffce00')  # comsol-yellow
+        self.cor_secundaria = config.get('relatorio', {}).get('cor_secundaria', '#013c78')  # comsol-blue
         self.cor_sucesso = '#27AE60'
-        self.cor_aviso = '#F39C12'
+        self.cor_aviso = '#ffce00'  # comsol-yellow
         self.cor_erro = '#E74C3C'
         
         # Estilo dos gráficos
@@ -103,6 +103,9 @@ class GeradorRelatorio:
         """Gera todos os gráficos necessários"""
         graficos = {}
         
+        # Garante que output_dir seja caminho absoluto (necessário para WeasyPrint)
+        output_dir = os.path.abspath(output_dir)
+        
         # Gráfico 1: Geração diária
         graficos['geracao_diaria'] = self._grafico_geracao_diaria(
             dados['geracao']['geracao_diaria'],
@@ -117,11 +120,13 @@ class GeradorRelatorio:
             os.path.join(output_dir, 'resumo_mensal.png')
         )
         
-        # Gráfico 3: Performance (velocímetro/gauge)
-        graficos['performance'] = self._grafico_performance(
-            dados['performance']['pr'],
-            os.path.join(output_dir, 'performance.png')
-        )
+        # Gráfico 3: Performance (velocímetro/gauge) - só gera se tiver dados
+        pr_val = dados.get('performance', {}).get('pr')
+        if pr_val is not None:
+            graficos['performance'] = self._grafico_performance(
+                pr_val,
+                os.path.join(output_dir, 'performance.png')
+            )
         
         # Gráfico 4: Comparativo (se houver)
         if dados.get('comparativo'):
@@ -134,36 +139,83 @@ class GeradorRelatorio:
     
     def _grafico_geracao_diaria(self, geracao_diaria: list, mes: int, ano: int, 
                                output_path: str) -> str:
-        """Gráfico de barras com geração diária"""
-        fig, ax = plt.subplots(figsize=(12, 5))
+        """Gráfico de barras com geração diária - estilo profissional"""
+        
+        # Se não há dados, retorna placeholder
+        if not geracao_diaria:
+            return self._gerar_placeholder(output_path, 'Sem dados diários')
+        
+        fig, ax = plt.subplots(figsize=(14, 6))
         
         dias = [d['dia'] for d in geracao_diaria]
         kwhs = [d['kwh'] for d in geracao_diaria]
         
-        cores = [self.cor_primaria if kwh > 0 else '#CCCCCC' for kwh in kwhs]
+        # Calcula média para referência
+        media = sum(kwhs) / len(kwhs) if kwhs else 0
         
-        bars = ax.bar(dias, kwhs, color=cores, alpha=0.8, edgecolor='white', linewidth=0.5)
+        # Cores: verde=média, laranja=abaixo da média, azul=acima da média
+        cores = []
+        for kwh in kwhs:
+            if kwh > media * 1.05:  # Acima de 5% da média
+                cores.append('#013c78')  # Azul
+            elif kwh < media * 0.95:  # Abaixo de 5% da média
+                cores.append(self.cor_primaria)  # Laranja
+            else:
+                cores.append(self.cor_sucesso)  # Verde (próximo da média)
         
-        # Destaca maior valor
-        max_idx = kwhs.index(max(kwhs)) if kwhs else 0
-        if kwhs and max_idx < len(bars):
-            bars[max_idx].set_color(self.cor_sucesso)
-            bars[max_idx].set_alpha(1.0)
+        # Cria barras
+        bars = ax.bar(dias, kwhs, color=cores, alpha=0.85, edgecolor='white', linewidth=0.8, width=0.8)
         
-        ax.set_xlabel('Dia do Mês', fontweight='bold')
-        ax.set_ylabel('Geração (kWh)', fontweight='bold')
-        ax.set_title(f'Geração Diária - {mes:02d}/{ano}', fontweight='bold', pad=20)
-        ax.grid(True, alpha=0.3, axis='y')
+        # Destaca o maior valor com borda
+        if kwhs:
+            max_idx = kwhs.index(max(kwhs))
+            bars[max_idx].set_edgecolor('#2C3E50')
+            bars[max_idx].set_linewidth(2)
+        
+        # Linha de média
+        ax.axhline(y=media, color='#27AE60', linestyle='--', linewidth=2, alpha=0.7, label=f'Média: {media:.1f} kWh')
+        
+        # Configurações do gráfico
+        ax.set_xlabel('Dia do Mês', fontsize=12, fontweight='bold', color='#2C3E50')
+        ax.set_ylabel('Geração (kWh)', fontsize=12, fontweight='bold', color='#2C3E50')
+        ax.set_title(f'Geração Diária de Energia - {mes:02d}/{ano}', fontsize=14, fontweight='bold', color='#2C3E50', pad=15)
+        
+        # Grid mais sutil
+        ax.grid(True, alpha=0.3, axis='y', linestyle='-', linewidth=0.5)
         ax.set_axisbelow(True)
         
+        # Formata eixo X para mostrar todos os dias
+        ax.set_xticks(dias)
+        ax.set_xticklabels([str(d) for d in dias], fontsize=9)
+        
         # Formata eixo Y
-        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x:,.0f}'))
+        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x:.0f}'))
+        
+        # Adiciona valores em cima das barras (apenas para valores acima da média)
+        for bar, kwh in zip(bars, kwhs):
+            if kwh > media * 1.05:
+                ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5, 
+                       f'{kwh:.1f}', ha='center', va='bottom', fontsize=7, fontweight='bold', color='#013c78')
+        
+        # Adiciona legenda
+        ax.legend(loc='upper right', fontsize=10)
+        
+        # Adiciona total no canto
+        total = sum(kwhs)
+        ax.text(0.02, 0.98, f'Total: {total:.2f} kWh', transform=ax.transAxes, 
+               fontsize=11, fontweight='bold', color='#2C3E50',
+               verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+        
+        # Remove bordas superiores e direita
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
         
         plt.tight_layout()
         plt.savefig(output_path, dpi=150, bbox_inches='tight', facecolor='white')
         plt.close()
         
-        return output_path
+        # Retorna caminho absoluto
+        return os.path.abspath(output_path)
     
     def _grafico_resumo_mensal(self, dados: Dict, output_path: str) -> str:
         """Gráfico de indicadores principais"""
@@ -205,22 +257,31 @@ class GeradorRelatorio:
         
         # 4. Performance Ratio
         ax4 = axes[1, 1]
-        pr = dados['performance']['pr']
-        cores_pr = [self.cor_sucesso if pr >= 75 else self.cor_aviso if pr >= 60 else self.cor_erro]
-        ax4.bar(['PR'], [pr], color=cores_pr, alpha=0.8, width=0.5)
-        ax4.set_ylabel('%', fontweight='bold')
-        ax4.set_title('Performance Ratio', fontweight='bold')
-        ax4.text(0, pr * 0.5, f"{pr:.1f}%", 
+        pr = dados.get('performance', {}).get('pr')
+        if pr is None:
+            # Sem dados: exibe placeholder visual
+            ax4.bar(['PR'], [0], color='#cccccc', alpha=0.8, width=0.5)
+            ax4.text(0, 0.5, '-', ha='center', va='center', fontsize=16, fontweight='bold', color='white')
+            ax4.set_ylim(0, 1)
+            ax4.set_ylabel('%', fontweight='bold')
+            ax4.set_title('Performance Ratio (sem dados)', fontweight='bold')
+            ax4.grid(False)
+        else:
+            cores_pr = [self.cor_sucesso if pr >= 75 else self.cor_aviso if pr >= 60 else self.cor_erro]
+            ax4.bar(['PR'], [pr], color=cores_pr, alpha=0.8, width=0.5)
+            ax4.set_ylabel('%', fontweight='bold')
+            ax4.set_title('Performance Ratio', fontweight='bold')
+            ax4.text(0, pr * 0.5, f"{pr:.1f}%", 
                 ha='center', va='center', fontsize=16, fontweight='bold', color='white')
-        ax4.set_ylim(0, 100)
-        ax4.axhline(y=75, color='gray', linestyle='--', alpha=0.5, label='Meta: 75%')
-        ax4.grid(True, alpha=0.3, axis='y')
-        ax4.legend()
-        
+            ax4.set_ylim(0, 100)
+            ax4.axhline(y=75, color='gray', linestyle='--', alpha=0.5, label='Meta: 75%')
+            ax4.grid(True, alpha=0.3, axis='y')
+            ax4.legend()
+
         plt.tight_layout()
         plt.savefig(output_path, dpi=150, bbox_inches='tight', facecolor='white')
         plt.close()
-        
+
         return output_path
     
     def _grafico_performance(self, pr: float, output_path: str) -> str:
@@ -264,10 +325,30 @@ class GeradorRelatorio:
         plt.close()
         
         return output_path
+
+    def _gerar_placeholder(self, output_path: str, texto: str) -> str:
+        """Gera uma imagem simples com texto indicando ausência de dados reais"""
+        try:
+            fig, ax = plt.subplots(figsize=(6, 2))
+            ax.text(0.5, 0.5, texto, ha='center', va='center', fontsize=12, color='#666666')
+            ax.set_axis_off()
+            plt.tight_layout()
+            plt.savefig(output_path, dpi=120, bbox_inches='tight', facecolor='white')
+            plt.close()
+            return output_path
+        except Exception as e:
+            logger.warning(f"Falha ao gerar placeholder de gráfico: {e}")
+            # Garante que a função sempre retorne um caminho (mesmo que o arquivo não exista)
+            return output_path
     
     def _grafico_comparativo(self, dados: Dict, output_path: str) -> str:
         """Gráfico comparativo com mês anterior"""
+        # Verifica se há dados do comparativo E se há valor do mês anterior
         if not dados.get('comparativo'):
+            return None
+        
+        kwh_anterior = dados['comparativo'].get('kwh_mes_anterior')
+        if kwh_anterior is None or kwh_anterior == 0:
             return None
         
         fig, ax = plt.subplots(figsize=(8, 5))
@@ -276,13 +357,18 @@ class GeradorRelatorio:
         mes_anterior = dados['comparativo']['mes_anterior']
         
         kwh_atual = dados['geracao']['total_kwh']
-        kwh_anterior = dados['comparativo']['kwh_mes_anterior']
         
+        # Posições das barras mais próximas
+        posicoes = [0, 0.6]  # Barras juntas horizontalmente
         meses = [mes_anterior, mes_atual]
         valores = [kwh_anterior, kwh_atual]
         
         cores = [self.cor_secundaria, self.cor_primaria]
-        bars = ax.bar(meses, valores, color=cores, alpha=0.8, width=0.5)
+        bars = ax.bar(posicoes, valores, color=cores, alpha=0.8, width=0.5)
+        
+        # Define labels do eixo X
+        ax.set_xticks(posicoes)
+        ax.set_xticklabels(meses)
         
         # Valores nas barras
         for bar, valor in zip(bars, valores):
@@ -291,19 +377,23 @@ class GeradorRelatorio:
                    f'{formatar_numero(valor, 0)}\nkWh',
                    ha='center', va='center', fontsize=12, fontweight='bold', color='white')
         
-        # Seta de variação
+        # Seta de variação - posicionada mais abaixo (dentro do gráfico)
         variacao = dados['comparativo']['variacao_percentual']
         cor_variacao = self.cor_sucesso if variacao >= 0 else self.cor_erro
         sinal = '+' if variacao >= 0 else ''
         
-        ax.text(0.5, max(valores) * 1.1, f'{sinal}{variacao:.1f}%',
-               ha='center', va='center', fontsize=16, fontweight='bold',
+        # Posiciona a porcentagem acima das barras mas com mais margem do título
+        ax.text(0.3, max(valores) * 1.08, f'{sinal}{variacao:.1f}%',
+               ha='center', va='bottom', fontsize=16, fontweight='bold',
                color=cor_variacao, transform=ax.transData)
         
         ax.set_ylabel('Geração (kWh)', fontweight='bold')
-        ax.set_title('Comparativo Mensal', fontweight='bold', pad=20)
+        ax.set_title('Comparativo Mensal', fontweight='bold', pad=40)  # Mais espaço vertical
         ax.grid(True, alpha=0.3, axis='y')
         ax.set_axisbelow(True)
+        
+        # Ajusta limites do eixo Y para dar espaço à porcentagem
+        ax.set_ylim(0, max(valores) * 1.25)
         
         plt.tight_layout()
         plt.savefig(output_path, dpi=150, bbox_inches='tight', facecolor='white')
@@ -323,11 +413,19 @@ class GeradorRelatorio:
         
         template = Template(template_str)
         
+        # Converte caminhos de gráficos para URIs file:// (necessário para WeasyPrint)
+        graficos_uri = {}
+        for nome, caminho in graficos.items():
+            if caminho:
+                graficos_uri[nome] = f'file://{caminho}'
+            else:
+                graficos_uri[nome] = None
+        
         # Prepara dados para o template
         context = {
             'dados': dados,
             'config': self.config,
-            'graficos': graficos,
+            'graficos': graficos_uri,
             'data_geracao': formatar_data_br(datetime.now()),
             'formatar_moeda': formatar_moeda,
             'formatar_numero': formatar_numero,

@@ -67,7 +67,46 @@ python main.py --mes 11 --ano 2025
 
 ---
 
-## 📝 Nota Importante:
+## � Sistema de Cache (Evita Rate Limit!)
+
+O sistema agora possui **cache automático** que armazena respostas da API por 24h:
+
+### ✅ Vantagens:
+- **Evita rate limit** durante testes
+- **Respostas instantâneas** (dados em cache)
+- **Economia de chamadas** à API
+- **Desenvolvimento mais rápido**
+
+### 📊 Gerenciar Cache:
+
+**Ver estatísticas:**
+```bash
+python gerenciar_cache.py stats
+```
+
+**Limpar todo cache:**
+```bash
+python gerenciar_cache.py clear
+```
+
+**Limpar cache antigo (>48h):**
+```bash
+python gerenciar_cache.py clear-old --hours 48
+```
+
+### ⚙️ Configurar:
+
+**Desabilitar cache** (forçar API sempre):
+```bash
+export CACHE_ENABLED=false
+python main.py
+```
+
+**Cache está em:** `.cache/fusionsolar/` (excluído do git)
+
+---
+
+## �📝 Nota Importante:
 
 O arquivo `exemplo_diomar.py` usa dados **simulados realistas** e não requer API ou configuração. É perfeito para:
 - ✅ Testar o sistema

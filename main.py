@@ -91,6 +91,12 @@ Exemplos de uso:
         help='Ativar modo debug (logs detalhados)'
     )
     
+    parser.add_argument(
+        '--sem-diarios',
+        action='store_true',
+        help='Desativar busca de dados diários (gera relatório apenas com totais mensais)'
+    )
+    
     args = parser.parse_args()
     
     # Define mês/ano padrão (mês anterior)
@@ -178,12 +184,21 @@ Exemplos de uso:
             
             try:
                 # Extrai dados
+                # Por padrão busca dados diários (é eficiente: 1 chamada só)
+                buscar_diarios = not args.sem_diarios
+                
+                if buscar_diarios:
+                    logger.info("📊 Busca de dados diários ATIVADA (1 chamada à API)")
+                else:
+                    logger.info("⚠️  Busca de dados diários DESATIVADA")
+                
                 logger.info("Extraindo dados da API...")
                 dados = extrator.comparar_com_mes_anterior(
                     station_code=station_code,
                     mes=mes,
                     ano=ano,
-                    potencia_kwp=cliente.get('potencia_kwp')
+                    potencia_kwp=cliente.get('potencia_kwp'),
+                    buscar_diarios=buscar_diarios
                 )
                 
                 # Adiciona informações do cliente

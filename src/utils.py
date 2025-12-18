@@ -164,10 +164,15 @@ def formatar_numero(valor: float, casas_decimais: int = 2) -> str:
         casas_decimais: Número de casas decimais
     
     Returns:
-        String formatada (ex: 1.234,56)
+        String formatada (ex: 1.234,56) ou "-" se valor for None
     """
-    formato = f"{{:,.{casas_decimais}f}}"
-    return formato.format(valor).replace(',', '_').replace('.', ',').replace('_', '.')
+    if valor is None:
+        return "-"
+    try:
+        formato = f"{{:,.{casas_decimais}f}}"
+        return formato.format(float(valor)).replace(',', '_').replace('.', ',').replace('_', '.')
+    except (TypeError, ValueError):
+        return "-"
 
 
 def formatar_percentual(valor: float, casas_decimais: int = 1) -> str:
@@ -179,9 +184,14 @@ def formatar_percentual(valor: float, casas_decimais: int = 1) -> str:
         casas_decimais: Número de casas decimais
     
     Returns:
-        String formatada (ex: 85,5%)
+        String formatada (ex: 85,5%) ou "-" se valor for None
     """
-    return f"{formatar_numero(valor, casas_decimais)}%"
+    if valor is None:
+        return "-"
+    try:
+        return f"{formatar_numero(valor, casas_decimais)}%"
+    except (TypeError, ValueError):
+        return "-"
 
 
 def salvar_json(dados: Dict, caminho: str, identar: bool = True) -> None:

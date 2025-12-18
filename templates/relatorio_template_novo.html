@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Geração Fotovoltaica - {{ dados.estacao.nome }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #2C3E50;
+            line-height: 1.6;
+            font-size: 10pt;
+            background: #fff;
+        }
+        
+        .page {
+            page-break-after: always;
+            padding: 20px 30px;
+        }
+        
+        .page:last-child {
+            page-break-after: avoid;
+        }
+
+        /* ===== CABEÇALHO (Estilo original laranja) ===== */
+        .header {
+            background: linear-gradient(135deg, #ffce00 0%, #ffce00 100%);
+            color: white;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        .header h1 {
+            font-size: 24pt;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header .periodo {
+            font-size: 16pt;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+        
+        .header .info-empresa {
+            margin-top: 20px;
+            font-size: 10pt;
+            opacity: 0.9;
+        }
+
+        /* ===== CAPA ===== */
+        .capa {
+            text-align: center;
+            padding-top: 20px;
+        }
+        
+        .cliente-box {
+            background: linear-gradient(135deg, #ffce00 0%, #ffce00 100%);
+            padding: 30px;
+            border-radius: 10px;
+            color: white;
+            margin: 30px 0;
+        }
+        
+        .cliente-box h2 {
+            font-size: 18pt;
+            margin-bottom: 10px;
+        }
+        
+        .cliente-box .sistema {
+            font-size: 14pt;
+            font-weight: 300;
+        }
+        
+        .cliente-box .subtitulo {
+            font-style: italic;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+
+        /* ===== SEÇÕES ===== */
+        .secao {
+            margin-bottom: 25px;
+        }
+        
+        .secao-titulo {
+            font-size: 16pt;
+            font-weight: 700;
+            color: #ffce00;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 3px solid #ffce00;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .secao-titulo .icone {
+            font-size: 18pt;
+        }
+
+        /* ===== RESUMO BOX ===== */
+        .resumo-box {
+            background: #FFF9E6;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #ffce00;
+            margin-bottom: 20px;
+        }
+        
+        .resumo-box h3 {
+            color: #d4a800;
+            margin-bottom: 15px;
+            font-size: 14pt;
+        }
+
+        /* ===== TABELAS ===== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+            font-size: 9pt;
+        }
+        
+        th {
+            background: #2C3E50;
+            color: white;
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .tabela-resumo th {
+            background: #ffce00;
+        }
+        
+        .valor-destaque {
+            font-weight: 700;
+            color: #ffce00;
+        }
+
+        /* ===== CARDS DE MÉTRICAS ===== */
+        .metricas-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metrica-card {
+            background: #f8f9fa;
+            border-left: 5px solid #ffce00;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .metrica-card.destaque {
+            background: linear-gradient(135deg, #ffce00 0%, #ffce00 100%);
+            color: white;
+            border-left: none;
+            grid-column: span 2;
+        }
+        
+        .metrica-card.sucesso {
+            border-left-color: #27AE60;
+            background: #e8f5e9;
+        }
+        
+        .metrica-card.economia {
+            border-left-color: #ffce00;
+            background: #fff8e1;
+        }
+        
+        .metrica-label {
+            font-size: 9pt;
+            opacity: 0.8;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metrica-valor {
+            font-size: 22pt;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        
+        .metrica-descricao {
+            font-size: 8pt;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        /* ===== BADGES ===== */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 8pt;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-sucesso {
+            background: #27AE60;
+            color: white;
+        }
+        
+        .badge-aviso {
+            background: #ffce00;
+            color: white;
+        }
+        
+        .badge-erro {
+            background: #E74C3C;
+            color: white;
+        }
+        
+        .badge-info {
+            background: #013c78;
+            color: white;
+        }
+
+        /* ===== DESTAQUE BOX ===== */
+        .destaque-box {
+            background: #FFF9E6;
+            border: 2px solid #ffce00;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .destaque-box h4 {
+            color: #d4a800;
+            margin-bottom: 10px;
+        }
+
+        /* ===== GRÁFICOS ===== */
+        .grafico {
+            width: 100%;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .grafico img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        
+        .grafico-titulo {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #2C3E50;
+            margin-bottom: 10px;
+        }
+
+        /* ===== STATUS BOX ===== */
+        .status-box {
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .status-box.operacional {
+            background: linear-gradient(135deg, #27AE60 0%, #2ECC71 100%);
+            color: white;
+        }
+        
+        .status-box h3 {
+            font-size: 16pt;
+            margin-bottom: 10px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* ===== TABELA RANKING ===== */
+        .tabela-ranking .posicao {
+            font-size: 14pt;
+            text-align: center;
+        }
+        
+        .tabela-ranking .ouro { color: #FFD700; }
+        .tabela-ranking .prata { color: #C0C0C0; }
+        .tabela-ranking .bronze { color: #CD7F32; }
+
+        /* ===== SEMANA DESTAQUE ===== */
+        .semana-destaque {
+            background: #e8f5e9 !important;
+            font-weight: 600;
+        }
+
+        /* ===== CONTATO BOX ===== */
+        .contato-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ffce00;
+        }
+        
+        .contato-box h3 {
+            color: #ffce00;
+            margin-bottom: 15px;
+        }
+        
+        .contato-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .contato-item {
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        /* ===== RESUMO FINAL ===== */
+        .resumo-final {
+            background: linear-gradient(135deg, #ffce00 0%, #ffce00 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .resumo-final h2 {
+            font-size: 18pt;
+            margin-bottom: 15px;
+        }
+        
+        .resumo-final .conquistas {
+            background: rgba(255,255,255,0.15);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .resumo-final .conquistas li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .resumo-final .mensagem {
+            font-size: 12pt;
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        /* ===== DADOS DETALHADOS ===== */
+        .dados-detalhados {
+            font-size: 8pt;
+        }
+        
+        .dados-detalhados th {
+            font-size: 8pt;
+            padding: 6px 4px;
+        }
+        
+        .dados-detalhados td {
+            padding: 4px;
+        }
+
+        /* ===== RODAPÉ ===== */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            font-size: 9pt;
+            color: #7f8c8d;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- ==================== PÁGINA 1: CAPA ==================== -->
+    <div class="page capa">
+        <div class="header" style="border-radius: 10px; background: linear-gradient(135deg, #013c78 0%, #013c78 100%);">
+            <img src="file:///home/igor/dev/FUSIONSOLAR-RELATORIOS-AUTOMATICOS/templates/logo-top.png" style="height: 80px; margin-bottom: 15px;" alt="Logo">
+            <h1>RELATÓRIO DE GERAÇÃO FOTOVOLTAICA</h1>
+            <div class="periodo">{{ dados.periodo.mes_ano_texto|upper }}</div>
+        </div>
+        
+        <div class="cliente-box" style="background: linear-gradient(135deg, #013c78 0%, #013c78 100%);">
+            <h2>{{ dados.estacao.nome }}</h2>
+            <div class="sistema">Sistema Solar Fotovoltaico - {{ formatar_numero(dados.estacao.potencia_kwp, 1) }} kWp</div>
+            <div class="subtitulo">Relatório Mensal de Desempenho</div>
+        </div>
+        
+        <!-- Informações da empresa -->
+        <div style="margin-top: 60px; color: #666;">
+            <p><strong>{{ config.relatorio.empresa.nome }}</strong></p>
+            <p>{{ config.relatorio.empresa.telefone }} | {{ config.relatorio.empresa.email }}</p>
+            <p>{{ config.relatorio.empresa.endereco }} - {{ config.relatorio.empresa.municipio }}/{{ config.relatorio.empresa.uf }}</p>
+            <p style="margin-top: 10px; font-size: 9pt;">
+                <strong>Responsável Técnico:</strong> {{ config.relatorio.responsavel_tecnico.nome }} - {{ config.relatorio.responsavel_tecnico.registro }}
+            </p>
+        </div>
+    </div>
+
+    <!-- ==================== PÁGINA 2: RESUMO EXECUTIVO ==================== -->
+    <div class="page">
+        <div class="secao">
+            <h2 class="secao-titulo"><span class="icone">🎯</span> RESUMO EXECUTIVO</h2>
+            
+            <div class="resumo-box">
+                <h3>✅ {{ dados.analise.status_geral|default('SISTEMA OPERANDO NORMALMENTE', true) }}</h3>
+                
+                <table class="tabela-resumo">
+                    <tr>
+                        <th>Indicador</th>
+                        <th>Valor</th>
+                        <th>Status</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Geração Total</strong></td>
+                        <td class="valor-destaque">{{ formatar_numero(dados.geracao.total_kwh, 2) }} kWh</td>
+                        <td><span class="badge badge-sucesso">✅ OK</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Economia Estimada</strong></td>
+                        <td class="valor-destaque">{{ formatar_moeda(dados.economia.economia_mensal) }}</td>
+                        <td>💰</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Energia Específica</strong></td>
+                        <td>{{ formatar_numero(dados.analise.energia_especifica, 2) }} kWh/kWp</td>
+                        <td>
+                            {% if dados.analise.energia_especifica is not none and dados.analise.energia_especifica >= 120 %}
+                            <span class="badge badge-sucesso">Excelente</span>
+                            {% elif dados.analise.energia_especifica is not none and dados.analise.energia_especifica >= 100 %}
+                            <span class="badge badge-info">Bom</span>
+                            {% elif dados.analise.energia_especifica is not none %}
+                            <span class="badge badge-aviso">Regular</span>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% if dados.performance.disponibilidade is not none %}
+                    <tr>
+                        <td><strong>Disponibilidade</strong></td>
+                        <td>{{ formatar_percentual(dados.performance.disponibilidade, 1) }}</td>
+                        <td><span class="badge badge-sucesso">Ótimo</span></td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+        
+        <!-- Comparativo com mês anterior -->
+        {% if dados.comparativo %}
+        <div class="destaque-box">
+            <h4>📊 Comparativo com {{ dados.comparativo.mes_anterior }}</h4>
+            <p>
+                {% if dados.comparativo.variacao_percentual >= 0 %}
+                    ⬆️ <strong style="color: #27AE60;">Aumento de {{ formatar_percentual(dados.comparativo.variacao_percentual, 1) }}</strong>
+                    em relação ao mês anterior ({{ formatar_numero(dados.comparativo.variacao_kwh, 0) }} kWh a mais)
+                {% else %}
+                    ⬇️ <strong style="color: #E74C3C;">Redução de {{ formatar_percentual(dados.comparativo.variacao_percentual * -1, 1) }}</strong>
+                    em relação ao mês anterior ({{ formatar_numero(dados.comparativo.variacao_kwh * -1, 0) }} kWh a menos)
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+        
+        <!-- Cards de métricas -->
+        <div class="metricas-grid">
+            <div class="metrica-card destaque">
+                <div class="metrica-label">⚡ Energia Total Gerada</div>
+                <div class="metrica-valor">{{ formatar_numero(dados.geracao.total_kwh, 0) }} kWh</div>
+                <div class="metrica-descricao">
+                    {% if dados.geracao.media_diaria is not none %}
+                    Média: {{ formatar_numero(dados.geracao.media_diaria, 1) }} kWh/dia
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="metrica-card economia">
+                <div class="metrica-label">💰 Economia</div>
+                <div class="metrica-valor" style="font-size: 18pt;">{{ formatar_moeda(dados.economia.economia_mensal) }}</div>
+                <div class="metrica-descricao">Tarifa: {{ formatar_moeda(dados.economia.tarifa_utilizada) }}/kWh</div>
+            </div>
+            
+            <div class="metrica-card sucesso">
+                <div class="metrica-label">🌱 CO₂ Evitado</div>
+                <div class="metrica-valor" style="font-size: 18pt;">{{ formatar_numero(dados.impacto_ambiental.co2_evitado_kg, 0) }} kg</div>
+                <div class="metrica-descricao">{{ formatar_numero(dados.impacto_ambiental.arvores_equivalentes, 0) }} árvores equivalentes</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== PÁGINA 3: ANÁLISE DE GERAÇÃO ==================== -->
+    <div class="page">
+        <div class="secao">
+            <h2 class="secao-titulo"><span class="icone">📈</span> ANÁLISE DETALHADA DE GERAÇÃO</h2>
+            
+            <!-- Gráfico de geração diária -->
+            {% if graficos.geracao_diaria %}
+            <div class="grafico">
+                <div class="grafico-titulo">Geração Diária - {{ dados.periodo.mes_ano_texto }}</div>
+                <img src="{{ graficos.geracao_diaria }}" alt="Gráfico de Geração Diária">
+            </div>
+            {% endif %}
+            
+            <!-- Estatísticas de Geração -->
+            <h3 style="color: #2C3E50; margin: 20px 0 15px 0;">📊 Estatísticas de Geração</h3>
+            <table>
+                <tr>
+                    <th>Métrica</th>
+                    <th>Valor</th>
+                </tr>
+                <tr>
+                    <td><strong>Geração Total do Mês</strong></td>
+                    <td class="valor-destaque">{{ formatar_numero(dados.geracao.total_kwh, 2) }} kWh</td>
+                </tr>
+                {% if dados.geracao.media_diaria is not none %}
+                <tr>
+                    <td><strong>Média Diária</strong></td>
+                    <td>{{ formatar_numero(dados.geracao.media_diaria, 2) }} kWh/dia</td>
+                </tr>
+                {% endif %}
+                {% if dados.analise.dia_maior_geracao %}
+                <tr>
+                    <td><strong>Dia de Maior Geração</strong></td>
+                    <td>{{ dados.analise.dia_maior_geracao.data }} - {{ formatar_numero(dados.analise.dia_maior_geracao.kwh, 2) }} kWh</td>
+                </tr>
+                {% endif %}
+                {% if dados.analise.dia_menor_geracao %}
+                <tr>
+                    <td><strong>Dia de Menor Geração</strong></td>
+                    <td>{{ dados.analise.dia_menor_geracao.data }} - {{ formatar_numero(dados.analise.dia_menor_geracao.kwh, 2) }} kWh</td>
+                </tr>
+                {% endif %}
+                {% if dados.geracao.dias_com_geracao is not none %}
+                <tr>
+                    <td><strong>Dias com Geração</strong></td>
+                    <td>{{ dados.geracao.dias_com_geracao }} de {{ dados.periodo.dias_no_mes }} dias</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+
+    <!-- ==================== PÁGINA 4: DESEMPENHO TÉCNICO ==================== -->
+    <div class="page">
+        <div class="secao">
+            <h2 class="secao-titulo"><span class="icone">⚡</span> DESEMPENHO TÉCNICO</h2>
+            
+            <!-- Tabela de indicadores técnicos -->
+            <h3 style="color: #2C3E50; margin-bottom: 15px;">📋 Indicadores Técnicos</h3>
+            <table>
+                <tr>
+                    <th>Indicador</th>
+                    <th>Valor</th>
+                    <th>Avaliação</th>
+                </tr>
+                <tr>
+                    <td><strong>Capacidade Instalada</strong></td>
+                    <td>{{ formatar_numero(dados.estacao.potencia_kwp, 2) }} kWp</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td><strong>Energia Específica</strong></td>
+                    <td>{{ formatar_numero(dados.analise.energia_especifica, 2) }} kWh/kWp</td>
+                    <td>
+                        {% if dados.analise.energia_especifica is not none and dados.analise.energia_especifica >= 120 %}
+                        <span class="badge badge-sucesso">Excelente</span>
+                        {% elif dados.analise.energia_especifica is not none and dados.analise.energia_especifica >= 100 %}
+                        <span class="badge badge-info">Bom</span>
+                        {% elif dados.analise.energia_especifica is not none %}
+                        <span class="badge badge-aviso">Regular</span>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Rendimento PV</strong></td>
+                    <td>{{ formatar_numero(dados.geracao.total_kwh, 2) }} kWh</td>
+                    <td><span class="badge badge-sucesso">Ótimo</span></td>
+                </tr>
+                {% if dados.performance.hsp_medio is not none %}
+                <tr>
+                    <td><strong>Horas de Sol Pico (HSP)</strong></td>
+                    <td>{{ formatar_numero(dados.performance.hsp_medio, 2) }} h</td>
+                    <td>-</td>
+                </tr>
+                {% endif %}
+                {% if dados.performance.disponibilidade is not none %}
+                <tr>
+                    <td><strong>Disponibilidade</strong></td>
+                    <td>{{ formatar_percentual(dados.performance.disponibilidade, 1) }}</td>
+                    <td>
+                        {% if dados.performance.disponibilidade >= 98 %}
+                        <span class="badge badge-sucesso">Excelente</span>
+                        {% elif dados.performance.disponibilidade >= 95 %}
+                        <span class="badge badge-info">Bom</span>
+                        {% else %}
+                        <span class="badge badge-aviso">Verificar</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+            </table>
+            
+            <!-- Gráfico de Performance -->
+            {% if graficos.performance %}
+            <div class="grafico" style="margin-top: 20px;">
+                <div class="grafico-titulo">Performance do Sistema</div>
+                <img src="{{ graficos.performance }}" alt="Performance">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ==================== PÁGINA 5: IMPACTO ECONÔMICO E AMBIENTAL ==================== -->
+    <div class="page">
+        <div class="secao">
+            <h2 class="secao-titulo"><span class="icone">💰</span> IMPACTO ECONÔMICO E AMBIENTAL</h2>
+            
+            <!-- Economia Financeira -->
+            <h3 style="color: #2C3E50; margin-bottom: 15px;">💵 Economia Financeira</h3>
+            <table>
+                <tr>
+                    <th>Descrição</th>
+                    <th>Valor</th>
+                </tr>
+                <tr>
+                    <td><strong>Energia Gerada</strong></td>
+                    <td>{{ formatar_numero(dados.geracao.total_kwh, 2) }} kWh</td>
+                </tr>
+                <tr>
+                    <td><strong>Tarifa Estimada</strong></td>
+                    <td>{{ formatar_moeda(dados.economia.tarifa_utilizada) }}/kWh*</td>
+                </tr>
+                <tr>
+                    <td><strong>💰 Economia no Mês</strong></td>
+                    <td class="valor-destaque">{{ formatar_moeda(dados.economia.economia_mensal) }}</td>
+                </tr>
+            </table>
+            <p style="font-size: 8pt; color: #666; margin-top: 5px;">*Baseado na tarifa média de energia elétrica</p>
+            
+            <!-- Impacto Ambiental -->
+            <h3 style="color: #2C3E50; margin: 30px 0 15px 0;">🌍 Impacto Ambiental</h3>
+            <div class="metricas-grid">
+                <div class="metrica-card sucesso">
+                    <div class="metrica-label">CO₂ Evitado</div>
+                    <div class="metrica-valor" style="font-size: 18pt;">{{ formatar_numero(dados.impacto_ambiental.co2_evitado_kg, 0) }} kg</div>
+                    <div class="metrica-descricao">{{ formatar_numero(dados.impacto_ambiental.co2_evitado_ton, 3) }} toneladas</div>
+                </div>
+                <div class="metrica-card sucesso">
+                    <div class="metrica-label">Árvores Equivalentes</div>
+                    <div class="metrica-valor" style="font-size: 18pt;">{{ formatar_numero(dados.impacto_ambiental.arvores_equivalentes, 0) }} 🌳</div>
+                    <div class="metrica-descricao">Absorção equivalente em 1 ano</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== PÁGINA 6: ANÁLISE SEMANAL ==================== -->
+    {% if dados.analise.semanas and dados.analise.semanas|length > 0 %}
+    <div class="page">
+        <div class="secao">
+            <h2 class="secao-titulo"><span class="icone">📊</span> ANÁLISE SEMANAL</h2>
+            
+            <h3 style="color: #2C3E50; margin-bottom: 15px;">📅 Desempenho por Semana</h3>
+            <table>
+                <tr>
+                    <th>Semana</th>
+                    <th>Período</th>
+                    <th>Geração (kWh)</th>
+                    <th>Média/Dia</th>
+                    <th>Destaque</th>
+                </tr>
+                {% for semana in dados.analise.semanas %}
+                <tr {% if semana.melhor %}class="semana-destaque"{% endif %}>
+                    <td><strong>Semana {{ semana.numero }}</strong></td>
+                    <td>{{ semana.periodo }}</td>
+                    <td>{{ formatar_numero(semana.geracao_kwh, 2) }}</td>
+                    <td>{{ formatar_numero(semana.media_diaria, 2) }}</td>
+                    <td>{% if semana.melhor %}🏆 Melhor semana!{% else %}{{ semana.destaque|default('') }}{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        
+        <!-- Gráfico Comparativo -->
+        {% if graficos.comparativo %}
+        <div class="secao" style="margin-top: 30px;">
+            <div class="grafico">
+                <div class="grafico-titulo">Comparativo com Mês Anterior</div>
+                <img src="{{ graficos.comparativo }}" alt="Comparativo">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ==================== PÁGINA 7: TOP 5 DIAS ==================== -->
+    {% if dados.analise.top5_dias and dados.analise.top5_dias|length > 0 %}
+    <div class="page">
+        <div class="secao">
+            <h2 class="secao-titulo"><span class="icone">🏆</span> DESTAQUES DO MÊS</h2>
+            
+            <h3 style="color: #2C3E50; margin-bottom: 15px;">⭐ Top 5 Dias de Maior Geração</h3>
+            <table class="tabela-ranking">
+                <tr>
+                    <th style="width: 60px;">Posição</th>
+                    <th>Data</th>
+                    <th>Geração</th>
+                    <th>Receita Estimada</th>
+                </tr>
+                {% for dia in dados.analise.top5_dias %}
+                <tr>
+                    <td class="posicao">
+                        {% if loop.index == 1 %}
+                        <span class="ouro">🥇</span>
+                        {% elif loop.index == 2 %}
+                        <span class="prata">🥈</span>
+                        {% elif loop.index == 3 %}
+                        <span class="bronze">🥉</span>
+                        {% else %}
+                        {{ loop.index }}º
+                        {% endif %}
+                    </td>
+                    <td>{{ dia.data }}</td>
+                    <td class="valor-destaque">{{ formatar_numero(dia.kwh, 2) }} kWh</td>
+                    <td>{{ formatar_moeda(dia.receita) }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            
+            <div class="destaque-box" style="margin-top: 25px;">
+                <h4>📝 Observações</h4>
+                <ul style="margin-left: 20px;">
+                    <li>Excelente desempenho mantido ao longo do mês</li>
+                    <li>Geração consistente e estável durante todo o período</li>
+                    {% if dados.analise.semana_mais_produtiva %}
+                    <li><strong>{{ dados.analise.semana_mais_produtiva }}</strong> foi o período mais produtivo</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ==================== PÁGINA 8: STATUS DO SISTEMA ==================== -->
+    <div class="page">
+        <div class="secao">
+            <h2 class="secao-titulo"><span class="icone">🔧</span> STATUS DO SISTEMA</h2>
+            
+            <div class="status-box operacional">
+                <h3>✅ SISTEMA 100% OPERACIONAL</h3>
+                <div style="text-align: left; padding: 15px;">
+                    <div class="status-item">
+                        <span>Painéis Solares</span>
+                        <span class="badge badge-sucesso">✓ Normal</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Inversor</span>
+                        <span class="badge badge-sucesso">✓ Normal</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Conexão à Rede</span>
+                        <span class="badge badge-sucesso">✓ Normal</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Monitoramento</span>
+                        <span class="badge badge-sucesso">✓ Normal</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alarmes -->
+            <h3 style="color: #2C3E50; margin: 25px 0 15px 0;">⚠️ Alarmes e Eventos</h3>
+            {% if dados.sistema.alarmes.total == 0 %}
+            <table>
+                <tr>
+                    <th>Status</th>
+                    <th>Descrição</th>
+                </tr>
+                <tr>
+                    <td>✅</td>
+                    <td><strong>Nenhum alarme registrado no período</strong></td>
+                </tr>
+                <tr>
+                    <td>✅</td>
+                    <td>Sistema operou continuamente durante todo o mês</td>
+                </tr>
+                <tr>
+                    <td>✅</td>
+                    <td>Disponibilidade: {% if dados.performance.disponibilidade is not none %}{{ formatar_percentual(dados.performance.disponibilidade, 0) }}{% else %}100%{% endif %}</td>
+                </tr>
+            </table>
+            {% else %}
+            <p><strong>Total de Alarmes:</strong> {{ dados.sistema.alarmes.total }}</p>
+            <table>
+                <tr>
+                    <th>Severidade</th>
+                    <th>Descrição</th>
+                    <th>Data</th>
+                </tr>
+                {% for alarme in dados.sistema.alarmes.lista %}
+                <tr>
+                    <td>
+                        {% if alarme.severidade == 'Crítico' %}
+                        <span class="badge badge-erro">🔴 Crítico</span>
+                        {% else %}
+                        <span class="badge badge-aviso">🟡 Aviso</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ alarme.nome }}</td>
+                    <td>{{ alarme.data }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ==================== PÁGINA 9: RECOMENDAÇÕES ==================== -->
+    <div class="page">
+        <div class="secao">
+            <h2 class="secao-titulo"><span class="icone">💡</span> RECOMENDAÇÕES</h2>
+            
+            <h3 style="color: #2C3E50; margin-bottom: 15px;">🔧 Manutenção Preventiva</h3>
+            <table>
+                <tr>
+                    <th>Item</th>
+                    <th>Recomendação</th>
+                    <th>Prioridade</th>
+                </tr>
+                <tr>
+                    <td><strong>Limpeza dos Painéis</strong></td>
+                    <td>Realizar limpeza para maximizar geração</td>
+                    <td><span class="badge badge-aviso">Média</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Inspeção Visual</strong></td>
+                    <td>Verificar cabos e conexões</td>
+                    <td><span class="badge badge-info">Baixa</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Verificação do Inversor</strong></td>
+                    <td>Sistema operando perfeitamente</td>
+                    <td><span class="badge badge-sucesso">OK</span></td>
+                </tr>
+            </table>
+            
+            <div class="destaque-box" style="margin-top: 25px;">
+                <h4>💡 DICAS PARA MAXIMIZAR SEU RETORNO</h4>
+                <ol style="margin-left: 20px; line-height: 2;">
+                    <li><strong>Seu sistema está com ótimo desempenho!</strong> Continue acompanhando o monitoramento.</li>
+                    <li><strong>Considere limpeza dos painéis</strong> para maximizar a geração.</li>
+                    <li><strong>Verifique sua conta de luz</strong> para confirmar os créditos gerados.</li>
+                </ol>
+            </div>
+        </div>
+        
+        <!-- Suporte -->
+        <div class="secao" style="margin-top: 30px;">
+            <h2 class="secao-titulo"><span class="icone">📞</span> SUPORTE</h2>
+            
+            <div class="contato-box">
+                <h3>Precisa de ajuda?</h3>
+                <div class="contato-info">
+                    <div class="contato-item">
+                        <span>📧 <strong>E-mail:</strong> {{ config.relatorio.email }}</span>
+                    </div>
+                    <div class="contato-item">
+                        <span>📱 <strong>Telefone:</strong> {{ config.relatorio.telefone }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== PÁGINA 10: ANEXO - DADOS DETALHADOS ==================== -->
+    {% if dados.geracao.geracao_diaria and dados.geracao.geracao_diaria|length > 0 %}
+    <div class="page">
+        <div class="secao">
+            <h2 class="secao-titulo"><span class="icone">📋</span> ANEXO - DADOS DIÁRIOS</h2>
+            
+            <table class="dados-detalhados">
+                <tr>
+                    <th>Data</th>
+                    <th>Geração (kWh)</th>
+                    <th>Energia Específica</th>
+                    <th>Receita (R$)</th>
+                    <th>CO₂ Evitado (kg)</th>
+                </tr>
+                {% for dia in dados.geracao.geracao_diaria %}
+                <tr>
+                    <td>{{ '%02d' % dia.dia }}/{{ '%02d' % dados.periodo.mes }}/{{ dados.periodo.ano }}</td>
+                    <td>{{ formatar_numero(dia.kwh, 2) }}</td>
+                    <td>{{ formatar_numero(dia.kwh / dados.estacao.potencia_kwp, 2) }} kWh/kWp</td>
+                    <td>{{ formatar_moeda(dia.kwh * dados.economia.tarifa_utilizada) }}</td>
+                    <td>{{ formatar_numero(dia.kwh * 0.0817, 2) }}</td>
+                </tr>
+                {% endfor %}
+                <tr style="background: #ffce00; color: white; font-weight: bold;">
+                    <td>TOTAL</td>
+                    <td>{{ formatar_numero(dados.geracao.total_kwh, 2) }}</td>
+                    <td>{{ formatar_numero(dados.analise.energia_especifica, 2) }} kWh/kWp</td>
+                    <td>{{ formatar_moeda(dados.economia.economia_mensal) }}</td>
+                    <td>{{ formatar_numero(dados.impacto_ambiental.co2_evitado_kg, 2) }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</body>
+</html>

@@ -67,3 +67,4 @@ htmlcov/
 
 # Sistema
 Thumbs.db
+.cache/

@@ -244,7 +244,11 @@
                     <div class="metrica-label">Energia Total Gerada</div>
                     <div class="metrica-valor">{{ formatar_numero(dados.geracao.total_kwh, 0) }} kWh</div>
                     <div class="metrica-descricao">
+                        {% if dados.geracao.media_diaria is not none %}
                         Média diária: {{ formatar_numero(dados.geracao.media_diaria, 1) }} kWh
+                        {% else %}
+                        Dados diários não disponíveis
+                        {% endif %}
                     </div>
                 </div>
                 
@@ -264,26 +268,35 @@
                     </div>
                 </div>
                 
+                {% if dados.performance.pr is not none %}
                 <div class="metrica-card">
                     <div class="metrica-label">⚡ Performance Ratio</div>
                     <div class="metrica-valor">{{ formatar_percentual(dados.performance.pr, 1) }}</div>
                     <div class="metrica-descricao">
-                        {% if dados.performance.pr >= 75 %}
+                        {% if dados.performance.pr is not none and dados.performance.pr >= 75 %}
                         <span class="badge badge-sucesso">Excelente</span>
-                        {% elif dados.performance.pr >= 60 %}
+                        {% elif dados.performance.pr is not none and dados.performance.pr >= 60 %}
                         <span class="badge badge-aviso">Bom</span>
                         {% else %}
                         <span class="badge badge-erro">Atenção</span>
                         {% endif %}
                     </div>
                 </div>
+                {% endif %}
                 
+                {% if dados.performance.hsp_medio is not none %}
                 <div class="metrica-card">
-                    <div class="metrica-label">☀️ Horas Sol Pico Médias</div>
+                    <div class="metrica-label">☀️ Horas Sol Pico</div>
                     <div class="metrica-valor">{{ formatar_numero(dados.performance.hsp_medio, 2) }} h</div>
                     <div class="metrica-descricao">
+                        {% if dados.performance.disponibilidade is not none %}
                         Disponibilidade: {{ formatar_percentual(dados.performance.disponibilidade, 1) }}
+                        {% else %}
+                        Baseado em geração real
+                        {% endif %}
                     </div>
+                </div>
+                {% endif %}
                 </div>
             </div>
             
@@ -323,19 +336,24 @@
                     <td><strong>Número de Inversores</strong></td>
                     <td>{{ dados.sistema.num_inversores }}</td>
                 </tr>
+                {% if dados.geracao.dias_com_geracao is not none %}
                 <tr>
                     <td><strong>Dias com Geração</strong></td>
                     <td>{{ dados.geracao.dias_com_geracao }} de {{ dados.periodo.dias_no_mes }} dias</td>
                 </tr>
+                {% endif %}
+                {% if dados.geracao.max_diario is not none %}
                 <tr>
                     <td><strong>Maior Geração Diária</strong></td>
                     <td>{{ formatar_numero(dados.geracao.max_diario, 1) }} kWh</td>
                 </tr>
+                {% endif %}
             </table>
         </div>
     </div>
     
     <!-- PÁGINA 2: GRÁFICOS DE ANÁLISE -->
+    {% if dados.geracao.tem_dados_diarios %}
     <div class="page">
         <div class="secao">
             <h2 class="secao-titulo">📈 Análise de Geração</h2>
@@ -351,8 +369,10 @@
             </div>
         </div>
     </div>
+    {% endif %}
     
     <!-- PÁGINA 3: PERFORMANCE E IMPACTO -->
+    {% if dados.performance.pr is not none %}
     <div class="page">
         <div class="secao">
             <h2 class="secao-titulo">⚡ Performance do Sistema</h2>
@@ -373,9 +393,9 @@
                         <td>Performance Ratio (PR)</td>
                         <td>{{ formatar_percentual(dados.performance.pr, 1) }}</td>
                         <td>
-                            {% if dados.performance.pr >= 75 %}
+                            {% if dados.performance.pr is not none and dados.performance.pr >= 75 %}
                             <span class="badge badge-sucesso">Excelente</span>
-                            {% elif dados.performance.pr >= 60 %}
+                            {% elif dados.performance.pr is not none and dados.performance.pr >= 60 %}
                             <span class="badge badge-aviso">Bom</span>
                             {% else %}
                             <span class="badge badge-erro">Atenção</span>
@@ -387,22 +407,26 @@
                         <td>{{ formatar_numero(dados.geracao.total_kwh, 2) }} kWh</td>
                         <td>-</td>
                     </tr>
+                    {% if dados.performance.energia_teorica is not none %}
                     <tr>
-                        <td>Energia Teórica Estimada</td>
+                        <td>Energia Teórica</td>
                         <td>{{ formatar_numero(dados.performance.energia_teorica, 2) }} kWh</td>
                         <td>-</td>
                     </tr>
+                    {% endif %}
+                    {% if dados.performance.disponibilidade is not none %}
                     <tr>
                         <td>Disponibilidade do Sistema</td>
                         <td>{{ formatar_percentual(dados.performance.disponibilidade, 1) }}</td>
                         <td>
-                            {% if dados.performance.disponibilidade >= 95 %}
+                            {% if dados.performance.disponibilidade is not none and dados.performance.disponibilidade >= 95 %}
                             <span class="badge badge-sucesso">Ótima</span>
                             {% else %}
                             <span class="badge badge-aviso">Normal</span>
                             {% endif %}
                         </td>
                     </tr>
+                    {% endif %}
                 </table>
             </div>
         </div>
@@ -417,6 +441,7 @@
         </div>
         {% endif %}
     </div>
+    {% endif %}
     
     <!-- PÁGINA 4: IMPACTO AMBIENTAL E ALARMES -->
     <div class="page">
@@ -486,6 +511,198 @@
             {% endfor %}
             {% endif %}
         </div>
+    </div>
+    
+    <!-- PÁGINA 5: DETALHES DOS INVERSORES -->
+    {% if dados.sistema.inversores and dados.sistema.inversores|length > 0 and dados.sistema.inversores[0].energia_total_kwh is defined %}
+    <div class="page">
+        <div class="secao">
+            <h2 class="secao-titulo">🔌 Detalhes dos Inversores</h2>
+            
+            <!-- Resumo geral dos inversores -->
+            {% if dados.sistema.inversores_resumo %}
+            <div class="metricas-grid" style="margin-bottom: 30px;">
+                <div class="metrica-card">
+                    <div class="metrica-label">Energia Total Produzida</div>
+                    <div class="metrica-valor" style="font-size: 18pt;">
+                        {{ formatar_numero(dados.sistema.inversores_resumo.energia_total_kwh, 2) }} kWh
+                    </div>
+                    <div class="metrica-descricao">
+                        Soma de todos os inversores (histórico)
+                    </div>
+                </div>
+                
+                <div class="metrica-card">
+                    <div class="metrica-label">Inversores Online</div>
+                    <div class="metrica-valor" style="font-size: 18pt;">
+                        {{ dados.sistema.inversores_resumo.num_inversores_online }} / {{ dados.sistema.inversores_resumo.num_inversores_total }}
+                    </div>
+                    <div class="metrica-descricao">
+                        {% if dados.sistema.inversores_resumo.num_inversores_online == dados.sistema.inversores_resumo.num_inversores_total %}
+                        <span class="badge badge-sucesso">Todos Online</span>
+                        {% else %}
+                        <span class="badge badge-aviso">Verificar</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if dados.sistema.inversores_resumo.temperatura_media_c > 0 %}
+                <div class="metrica-card">
+                    <div class="metrica-label">Temperatura Média</div>
+                    <div class="metrica-valor" style="font-size: 18pt;">
+                        {{ formatar_numero(dados.sistema.inversores_resumo.temperatura_media_c, 1) }}°C
+                    </div>
+                    <div class="metrica-descricao">
+                        Máx: {{ formatar_numero(dados.sistema.inversores_resumo.temperatura_max_c, 1) }}°C
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if dados.sistema.inversores_resumo.potencia_ativa_total_kw > 0 %}
+                <div class="metrica-card">
+                    <div class="metrica-label">Potência Ativa Atual</div>
+                    <div class="metrica-valor" style="font-size: 18pt;">
+                        {{ formatar_numero(dados.sistema.inversores_resumo.potencia_ativa_total_kw, 2) }} kW
+                    </div>
+                    <div class="metrica-descricao">
+                        Geração no momento da coleta
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Tabela detalhada de cada inversor -->
+            <h3 style="color: #2C3E50; margin-bottom: 15px;">📋 Dados por Inversor</h3>
+            <table>
+                <tr>
+                    <th>Inversor</th>
+                    <th>Serial</th>
+                    <th>Status</th>
+                    <th>Energia Total</th>
+                    <th>Energia Hoje</th>
+                    <th>Temperatura</th>
+                </tr>
+                {% for inv in dados.sistema.inversores %}
+                <tr>
+                    <td><strong>{{ inv.nome }}</strong></td>
+                    <td>{{ inv.sn }}</td>
+                    <td>
+                        {% if inv.status == 1 %}
+                        <span class="badge badge-sucesso">Online</span>
+                        {% elif inv.status == 0 %}
+                        <span class="badge badge-aviso">Standby</span>
+                        {% else %}
+                        <span class="badge badge-erro">Offline</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ formatar_numero(inv.energia_total_kwh, 2) }} kWh</td>
+                    <td>{{ formatar_numero(inv.energia_dia_kwh, 2) }} kWh</td>
+                    <td>{{ formatar_numero(inv.temperatura_c, 1) }}°C</td>
+                </tr>
+                {% endfor %}
+            </table>
+            
+            <!-- Detalhes MPPT (se houver) -->
+            {% for inv in dados.sistema.inversores %}
+            {% if inv.mppt_total_kwh and inv.mppt_total_kwh > 0 %}
+            <div style="margin-top: 30px;">
+                <h4 style="color: #FF6B00; margin-bottom: 10px;">{{ inv.nome }} - Produção por MPPT</h4>
+                <table>
+                    <tr>
+                        <th>MPPT</th>
+                        <th>Energia Acumulada (kWh)</th>
+                        <th>% do Total</th>
+                    </tr>
+                    {% if inv.mppt_1_kwh and inv.mppt_1_kwh > 0 %}
+                    <tr>
+                        <td>MPPT 1</td>
+                        <td>{{ formatar_numero(inv.mppt_1_kwh, 2) }}</td>
+                        <td>{{ formatar_numero(inv.mppt_1_kwh / inv.mppt_total_kwh * 100, 1) }}%</td>
+                    </tr>
+                    {% endif %}
+                    {% if inv.mppt_2_kwh and inv.mppt_2_kwh > 0 %}
+                    <tr>
+                        <td>MPPT 2</td>
+                        <td>{{ formatar_numero(inv.mppt_2_kwh, 2) }}</td>
+                        <td>{{ formatar_numero(inv.mppt_2_kwh / inv.mppt_total_kwh * 100, 1) }}%</td>
+                    </tr>
+                    {% endif %}
+                    {% if inv.mppt_3_kwh and inv.mppt_3_kwh > 0 %}
+                    <tr>
+                        <td>MPPT 3</td>
+                        <td>{{ formatar_numero(inv.mppt_3_kwh, 2) }}</td>
+                        <td>{{ formatar_numero(inv.mppt_3_kwh / inv.mppt_total_kwh * 100, 1) }}%</td>
+                    </tr>
+                    {% endif %}
+                    {% if inv.mppt_4_kwh and inv.mppt_4_kwh > 0 %}
+                    <tr>
+                        <td>MPPT 4</td>
+                        <td>{{ formatar_numero(inv.mppt_4_kwh, 2) }}</td>
+                        <td>{{ formatar_numero(inv.mppt_4_kwh / inv.mppt_total_kwh * 100, 1) }}%</td>
+                    </tr>
+                    {% endif %}
+                    <tr style="font-weight: bold; background: #f0f0f0;">
+                        <td>Total MPPT</td>
+                        <td>{{ formatar_numero(inv.mppt_total_kwh, 2) }}</td>
+                        <td>100%</td>
+                    </tr>
+                </table>
+            </div>
+            {% endif %}
+            {% endfor %}
+            
+            <!-- Dados de Strings PV (se houver) -->
+            {% for inv in dados.sistema.inversores %}
+            {% if (inv.pv1_tensao and inv.pv1_tensao > 0) or (inv.pv2_tensao and inv.pv2_tensao > 0) %}
+            <div style="margin-top: 30px;">
+                <h4 style="color: #FF6B00; margin-bottom: 10px;">{{ inv.nome }} - Strings Fotovoltaicas</h4>
+                <table>
+                    <tr>
+                        <th>String</th>
+                        <th>Tensão (V)</th>
+                        <th>Corrente (A)</th>
+                        <th>Potência Estimada (W)</th>
+                    </tr>
+                    {% if inv.pv1_tensao and inv.pv1_tensao > 0 %}
+                    <tr>
+                        <td>PV1</td>
+                        <td>{{ formatar_numero(inv.pv1_tensao, 1) }}</td>
+                        <td>{{ formatar_numero(inv.pv1_corrente, 2) }}</td>
+                        <td>{{ formatar_numero(inv.pv1_tensao * inv.pv1_corrente, 0) }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if inv.pv2_tensao and inv.pv2_tensao > 0 %}
+                    <tr>
+                        <td>PV2</td>
+                        <td>{{ formatar_numero(inv.pv2_tensao, 1) }}</td>
+                        <td>{{ formatar_numero(inv.pv2_corrente, 2) }}</td>
+                        <td>{{ formatar_numero(inv.pv2_tensao * inv.pv2_corrente, 0) }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if inv.pv3_tensao and inv.pv3_tensao > 0 %}
+                    <tr>
+                        <td>PV3</td>
+                        <td>{{ formatar_numero(inv.pv3_tensao, 1) }}</td>
+                        <td>{{ formatar_numero(inv.pv3_corrente, 2) }}</td>
+                        <td>{{ formatar_numero(inv.pv3_tensao * inv.pv3_corrente, 0) }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if inv.pv4_tensao and inv.pv4_tensao > 0 %}
+                    <tr>
+                        <td>PV4</td>
+                        <td>{{ formatar_numero(inv.pv4_tensao, 1) }}</td>
+                        <td>{{ formatar_numero(inv.pv4_corrente, 2) }}</td>
+                        <td>{{ formatar_numero(inv.pv4_tensao * inv.pv4_corrente, 0) }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
         
         <!-- Rodapé -->
         <div class="footer">

@@ -134,7 +134,7 @@ fusionsolar:
   password: "sua_senha"
 
 relatorio:
-  nome_empresa: "Sua Empresa Solar Ltda"
+  nome_empresa: "Comsol Energias"
   telefone: "(00) 0000-0000"
   email: "contato@empresa.com"
   tarifa_energia_kwh: 0.887
